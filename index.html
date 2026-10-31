@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DIGIPRO.ID — Aplikasi Premium Bergaransi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #090D16;
+      color: #F8FAFC;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Grid 3 Card di HP, 4 di Tablet, 5 di Desktop */
+    .catalog-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    @media (min-width: 640px) {
+      .catalog-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+    }
+    @media (min-width: 1024px) {
+      .catalog-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 16px;
+      }
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#090D16] text-slate-100">
+
+  <!-- HEADER TOKO -->
+  <header class="sticky top-0 z-30 bg-[#0B1120]/95 backdrop-blur border-b border-slate-800 shadow-lg">
+    <div class="max-w-6xl mx-auto px-3 sm:px-6 pt-2.5 pb-2.5 space-y-2.5">
+      
+      <div class="flex items-center justify-between gap-2">
+        <a href="#" class="flex items-center gap-2.5 min-w-0">
+          <img id="storeLogoImg" src="https://ui-avatars.com/api/?name=DP&background=6366F1&color=fff&bold=true&rounded=true" alt="Logo" class="w-9 h-9 rounded-xl object-cover border border-slate-700 shrink-0" />
+          <div class="truncate">
+            <h1 id="storeNameText" class="font-extrabold text-sm sm:text-base text-white leading-tight truncate">DIGIPRO.ID</h1>
+            <p id="storeTaglineText" class="text-[10px] sm:text-xs text-slate-400 font-medium truncate">Akun Premium Bergaransi</p>
+          </div>
+        </a>
+
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button onclick="openTrackModal()" class="px-2.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-[11px] font-bold flex items-center gap-1 transition border border-slate-700/50">
+            <span>🔍 Cek Order</span>
+          </button>
+
+          <button onclick="toggleCart(true)" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold flex items-center gap-1.5 shadow-md shadow-indigo-600/30 transition">
+            <span>🛒 Keranjang</span>
+            <span id="cartCountBadge" class="bg-white text-indigo-900 px-1.5 py-0.2 rounded-full text-[10px] font-extrabold">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pencarian & Kategori -->
+      <div class="flex flex-col sm:flex-row gap-2">
+        <div class="relative flex-1">
+          <input id="searchInput" type="text" placeholder="Cari CapCut Pro, Loklok, Netflix, Canva..." 
+            class="w-full pl-8 pr-3 py-2 text-xs bg-slate-900/90 text-white placeholder-slate-500 border border-slate-800 rounded-xl focus:bg-slate-900 focus:border-indigo-500 focus:outline-none transition" />
+          <svg class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"/>
+          </svg>
+        </div>
+
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <button onclick="setCategory('ALL')" data-cat="ALL" class="cat-btn bg-indigo-600 text-white px-3 py-1.5 rounded-xl text-[11px] font-bold shrink-0 shadow-sm">Semua</button>
+          <button onclick="setCategory('Editing')" data-cat="Editing" class="cat-btn bg-slate-900 text-slate-400 border border-slate-800 px-3 py-1.5 rounded-xl text-[11px] font-semibold shrink-0 hover:text-white">Editing & Desain</button>
+          <button onclick="setCategory('Streaming')" data-cat="Streaming" class="cat-btn bg-slate-900 text-slate-400 border border-slate-800 px-3 py-1.5 rounded-xl text-[11px] font-semibold shrink-0 hover:text-white">Streaming</button>
+          <button onclick="setCategory('Musik & AI')" data-cat="Musik & AI" class="cat-btn bg-slate-900 text-slate-400 border border-slate-800 px-3 py-1.5 rounded-xl text-[11px] font-semibold shrink-0 hover:text-white">Musik & AI</button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- KATALOG PRODUK -->
+  <main class="max-w-6xl mx-auto w-full px-2.5 sm:px-6 py-4 flex-1">
+    <div id="productGrid" class="catalog-grid"></div>
+
+    <div id="emptyState" class="hidden text-center py-16 bg-[#0B1120] rounded-2xl border border-slate-800 my-4 shadow-inner">
+      <p class="text-sm font-bold text-slate-300">Produk tidak ditemukan</p>
+      <p class="text-xs text-slate-500 mt-1">Coba gunakan kata kunci lain.</p>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-[#0B1120] border-t border-slate-800 mt-10">
+    <div class="max-w-6xl mx-auto px-4 py-4 text-center sm:flex sm:items-center sm:justify-between text-[11px] text-slate-400">
+      <p><span id="footerStoreName" class="font-bold text-white">DIGIPRO.ID</span> — Layanan Akun Premium Bergaransi</p>
+      <p class="mt-1 sm:mt-0 text-slate-500">Proses Kilat • Full Garansi Selama Masa Aktif</p>
+    </div>
+  </footer>
+
+  <!-- DRAWER KERANJANG -->
+  <div id="cartOverlay" class="fixed inset-0 bg-black/70 backdrop-blur-xs z-40 hidden items-end sm:items-center justify-end">
+    <div class="bg-[#0F172A] border-l border-slate-800 w-full sm:max-w-md h-[88vh] sm:h-full rounded-t-2xl sm:rounded-none flex flex-col shadow-2xl">
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-[#0B1120]">
+        <div>
+          <h2 class="font-extrabold text-sm sm:text-base text-white">Keranjang Pesanan</h2>
+          <p class="text-[11px] text-slate-400">Pesanan diteruskan otomatis ke WhatsApp</p>
+        </div>
+        <button onclick="toggleCart(false)" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700">✕</button>
+      </div>
+
+      <div id="cartItemsContainer" class="flex-1 overflow-y-auto p-3.5 space-y-2.5"></div>
+
+      <div class="p-4 border-t border-slate-800 bg-[#0B1120] space-y-2.5">
+        <input id="buyerName" type="text" placeholder="Nama Anda" class="w-full px-3 py-2 text-xs bg-slate-900 text-white placeholder-slate-500 border border-slate-800 rounded-xl focus:border-indigo-500 focus:outline-none" />
+        <input id="buyerWhatsapp" type="tel" placeholder="Nomor WhatsApp Aktif (08xx)" class="w-full px-3 py-2 text-xs bg-slate-900 text-white placeholder-slate-500 border border-slate-800 rounded-xl focus:border-indigo-500 focus:outline-none" />
+        <select id="buyerPayment" class="w-full px-3 py-2 text-xs bg-slate-900 text-white border border-slate-800 rounded-xl focus:border-indigo-500 focus:outline-none">
+          <option value="QRIS All Payment">QRIS (Dana / OVO / GoPay / Bank)</option>
+        </select>
+
+        <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+          <span class="text-xs font-semibold text-slate-400">Total Bayar</span>
+          <span id="cartTotalText" class="text-base font-extrabold text-indigo-400">Rp 0</span>
+        </div>
+
+        <button onclick="submitOrder()" id="checkoutBtn" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition">
+          Beli & Kirim Pesanan Sekarang
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CEK PESANAN -->
+  <div id="trackModal" class="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+    <div class="bg-[#0F172A] border border-slate-800 rounded-2xl max-w-sm w-full p-4 shadow-2xl">
+      <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
+        <h3 class="font-extrabold text-sm text-white">Cek Status Pesanan</h3>
+        <button onclick="closeTrackModal()" class="text-slate-400 hover:text-white font-bold text-xs">✕</button>
+      </div>
+      <div class="mt-3 space-y-2.5">
+        <input id="trackInput" type="text" placeholder="Nomor WA atau ID Order (INV-...)" class="w-full px-3 py-2 text-xs bg-slate-900 text-white placeholder-slate-500 border border-slate-800 rounded-xl focus:border-indigo-500 focus:outline-none" />
+        <button onclick="searchOrder()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-md">Cari Pesanan</button>
+        <div id="trackResultBox" class="text-xs space-y-2 max-h-52 overflow-y-auto pt-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT FIREBASE & RENDER -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { 
+      getFirestore, collection, doc, onSnapshot, addDoc, getDocs 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // =========================================================================
+    // TEMPELKAN FIREBASE CONFIG ANDA DI SINI
+    // =========================================================================
+    const firebaseConfig = {
+    apiKey: "AIzaSyApNQL4mqn_ZARmiDRrtZXNGpkb4wCeQUw",
+    authDomain: "morez-market.firebaseapp.com",
+    projectId: "morez-market",
+    storageBucket: "morez-market.firebasestorage.app",
+    messagingSenderId: "45810455286",
+    appId: "1:45810455286:web:8721a0842e4570efd7d2d7",
+    measurementId: "G-L3YLPKVM64"
+  };
+
+    let db = null;
+    let products = [];
+    let selectedVariants = {};
+    let cart = [];
+    let currentCategory = "ALL";
+    let storeSettings = {
+      storeName: "DIGIPRO.ID",
+      tagline: "Akun Premium Bergaransi",
+      logoUrl: "https://ui-avatars.com/api/?name=DP&background=6366F1&color=fff&bold=true&rounded=true",
+      whatsapp: "6285151778865"
+    };
+
+    const formatRp = (num) => "Rp" + Number(num || 0).toLocaleString("id-ID");
+
+    try {
+      if (firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("GANTI_DENGAN")) {
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+
+        onSnapshot(doc(db, "settings", "store"), (snap) => {
+          if (snap.exists()) {
+            storeSettings = { ...storeSettings, ...snap.data() };
+            applyStoreBranding();
+          }
+        });
+
+        onSnapshot(collection(db, "products"), (snap) => {
+          products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          renderProducts();
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
+    function applyStoreBranding() {
+      document.getElementById("storeNameText").textContent = storeSettings.storeName || "DIGIPRO.ID";
+      document.getElementById("footerStoreName").textContent = storeSettings.storeName || "DIGIPRO.ID";
+      document.getElementById("storeTaglineText").textContent = storeSettings.tagline || "Akun Premium Bergaransi";
+      if (storeSettings.logoUrl) {
+        document.getElementById("storeLogoImg").src = storeSettings.logoUrl;
+      }
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById("productGrid");
+      const emptyState = document.getElementById("emptyState");
+      const keyword = (document.getElementById("searchInput").value || "").toLowerCase();
+
+      const filtered = products.filter(p => {
+        const matchCat = currentCategory === "ALL" || p.category === currentCategory;
+        const matchSearch = p.name.toLowerCase().includes(keyword) || (p.category || "").toLowerCase().includes(keyword);
+        return matchCat && matchSearch;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = "";
+        emptyState.classList.remove("hidden");
+        return;
+      }
+      emptyState.classList.add("hidden");
+
+      grid.innerHTML = filtered.map(p => {
+        const variants = Array.isArray(p.variants) && p.variants.length > 0 
+          ? p.variants 
+          : [{ label: "1 Bulan", price: p.price || 15000 }];
+        const activeIdx = selectedVariants[p.id] || 0;
+        const activeVar = variants[activeIdx] || variants[0];
+        const origPrice = Number(p.originalPrice || activeVar.price * 1.4);
+        const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=1E293B&color=fff&bold=true&size=128`;
+
+        return `
+          <div class="bg-[#0B1120] rounded-2xl border border-slate-800 overflow-hidden flex flex-col justify-between shadow-md hover:border-slate-700 transition">
+            
+            <div>
+              <div class="relative bg-gradient-to-b from-slate-800/40 to-transparent pt-3.5 pb-2.5 px-2 flex items-center justify-center border-b border-slate-800/60">
+                ${p.badge ? `<span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md text-[8px] sm:text-[9px] font-extrabold bg-indigo-600 text-white leading-none shadow-sm">${p.badge}</span>` : ''}
+                <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full ${p.stock !== false ? 'bg-emerald-500' : 'bg-rose-500'}"></span>
+                
+                <img src="${p.logo || fallbackAvatar}" 
+                     alt="${p.name}" 
+                     onerror="this.src='${fallbackAvatar}'"
+                     class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl object-cover shadow-md bg-slate-900 border border-slate-700/80" />
+              </div>
+
+              <!-- Info, Deskripsi & Rating Bintang -->
+              <div class="p-2.5 sm:p-3 pb-1">
+                <h3 class="font-extrabold text-[11px] sm:text-xs text-white truncate leading-snug" title="${p.name}">${p.name}</h3>
+                
+                <!-- Deskripsi Produk -->
+                <p class="text-[9px] sm:text-[10px] text-slate-400 line-clamp-2 mt-0.5 mb-1 leading-tight">${p.desc || 'Akun premium resmi, legal, dan bergaransi penuh selama masa aktif.'}</p>
+
+                <!-- Ikhstar / Bintang -->
+                <div class="flex items-center gap-1 text-[9px] sm:text-[10px] text-slate-400">
+                  <span class="text-amber-400 font-bold">★</span>
+                  <span class="font-bold text-slate-200">${p.rating || '4.9'}</span>
+                  <span class="text-slate-600">•</span>
+                  <span class="text-slate-400 truncate">${p.sold || '1rb+'} laku</span>
+                </div>
+
+                <!-- Dropdown Varian Durasi -->
+                <div class="mt-2">
+                  <select onchange="selectVariant('${p.id}', this.value)" 
+                    class="w-full px-1.5 py-1 sm:px-2 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold bg-slate-900 text-slate-200 border border-slate-700 focus:outline-none focus:border-indigo-500 truncate">
+                    ${variants.map((v, idx) => `
+                      <option value="${idx}" ${idx === Number(activeIdx) ? 'selected' : ''}>${v.label}</option>
+                    `).join('')}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Harga & Tombol Beli -->
+            <div class="p-2.5 sm:p-3 pt-1.5 flex flex-col justify-end">
+              <div class="text-[9px] sm:text-[10px] text-slate-500 line-through truncate leading-none">
+                ${formatRp(origPrice)}
+              </div>
+              <div class="text-xs sm:text-sm font-extrabold text-indigo-400 leading-tight mt-0.5 mb-2 truncate">
+                ${formatRp(activeVar.price)}
+              </div>
+
+              <button onclick="addToCart('${p.id}')" ${p.stock === false ? 'disabled' : ''} 
+                class="w-full py-1.5 sm:py-2 rounded-xl text-[10px] sm:text-xs font-extrabold transition ${p.stock !== false ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 active:scale-95' : 'bg-slate-800 text-slate-500 cursor-not-allowed'}">
+                ${p.stock !== false ? '+ Beli' : 'Habis'}
+              </button>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.selectVariant = (productId, variantIdx) => {
+      selectedVariants[productId] = Number(variantIdx);
+      renderProducts();
+    };
+
+    window.setCategory = (cat) => {
+      currentCategory = cat;
+      document.querySelectorAll(".cat-btn").forEach(btn => {
+        if (btn.dataset.cat === cat) {
+          btn.className = "cat-btn bg-indigo-600 text-white px-3 py-1.5 rounded-xl text-[11px] font-bold shrink-0 shadow-sm";
+        } else {
+          btn.className = "cat-btn bg-slate-900 text-slate-400 border border-slate-800 px-3 py-1.5 rounded-xl text-[11px] font-semibold shrink-0 hover:text-white";
+        }
+      });
+      renderProducts();
+    };
+
+    window.addToCart = (productId) => {
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
+      const variants = Array.isArray(product.variants) && product.variants.length > 0 
+        ? product.variants 
+        : [{ label: "1 Bulan", price: product.price || 15000 }];
+      const vIdx = selectedVariants[productId] || 0;
+      const chosen = variants[vIdx] || variants[0];
+
+      const cartKey = `${product.id}__${chosen.label}`;
+      const existing = cart.find(item => item.cartKey === cartKey);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({
+          cartKey,
+          productId: product.id,
+          name: product.name,
+          logo: product.logo,
+          variantLabel: chosen.label,
+          price: Number(chosen.price),
+          qty: 1
+        });
+      }
+      updateCartUI();
+      toggleCart(true);
+    };
+
+    window.changeQty = (cartKey, delta) => {
+      const idx = cart.findIndex(i => i.cartKey === cartKey);
+      if (idx === -1) return;
+      cart[idx].qty += delta;
+      if (cart[idx].qty <= 0) cart.splice(idx, 1);
+      updateCartUI();
+    };
+
+    function updateCartUI() {
+      const badge = document.getElementById("cartCountBadge");
+      const container = document.getElementById("cartItemsContainer");
+      const totalEl = document.getElementById("cartTotalText");
+
+      const totalQty = cart.reduce((sum, i) => sum + i.qty, 0);
+      const totalPrice = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+
+      badge.textContent = totalQty;
+      totalEl.textContent = formatRp(totalPrice);
+
+      if (cart.length === 0) {
+        container.innerHTML = `<p class="text-center text-xs text-slate-500 py-10">Keranjang belanja masih kosong.</p>`;
+        return;
+      }
+
+      container.innerHTML = cart.map(item => `
+        <div class="flex items-center justify-between gap-2.5 p-2.5 rounded-xl border border-slate-800 bg-slate-900">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <img src="${item.logo}" onerror="this.src='https://ui-avatars.com/api/?name=App&background=1E293B&color=fff'" class="w-9 h-9 rounded-lg object-cover bg-slate-800 border border-slate-700 shrink-0" />
+            <div class="truncate">
+              <h4 class="text-xs font-bold text-white truncate">${item.name}</h4>
+              <p class="text-[10px] text-slate-400">${item.variantLabel} • ${formatRp(item.price)}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button onclick="changeQty('${item.cartKey}', -1)" class="w-6 h-6 rounded-md bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200">-</button>
+            <span class="text-xs font-bold w-4 text-center text-white">${item.qty}</span>
+            <button onclick="changeQty('${item.cartKey}', 1)" class="w-6 h-6 rounded-md bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200">+</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.toggleCart = (show) => {
+      const overlay = document.getElementById("cartOverlay");
+      overlay.classList.toggle("hidden", !show);
+      overlay.classList.toggle("flex", show);
+    };
+
+    window.submitOrder = async () => {
+      if (cart.length === 0) return alert("Pilih produk terlebih dahulu!");
+      const buyerName = document.getElementById("buyerName").value.trim();
+      const buyerWhatsapp = document.getElementById("buyerWhatsapp").value.trim();
+      const buyerPayment = document.getElementById("buyerPayment").value;
+
+      if (!buyerName || !buyerWhatsapp) {
+        return alert("Mohon isi Nama dan Nomor WhatsApp Anda!");
+      }
+
+      const orderId = "INV-" + Date.now().toString().slice(-6);
+      const totalAmount = cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const orderPayload = {
+        orderId,
+        buyerName,
+        buyerWhatsapp,
+        paymentMethod: buyerPayment,
+        items: cart,
+        totalAmount,
+        status: "Pending",
+        createdAt: new Date().toISOString()
+      };
+
+      const btn = document.getElementById("checkoutBtn");
+      btn.disabled = true;
+      btn.textContent = "Memproses...";
+
+      try {
+        if (db) {
+          await addDoc(collection(db, "orders"), orderPayload);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      const itemLines = cart.map(i => `- ${i.name} (${i.variantLabel}) x${i.qty} = ${formatRp(i.price * i.qty)}`).join("%0A");
+      const waText = `Halo Admin *${storeSettings.storeName}*, saya ingin memesan:%0A%0A*ID Order:* ${orderId}%0A*Nama:* ${buyerName}%0A*WhatsApp:* ${buyerWhatsapp}%0A*Pembayaran:* ${buyerPayment}%0A%0A*Pesanan:*%0A${itemLines}%0A%0A*Total:* ${formatRp(totalAmount)}`;
+
+      const targetWa = (storeSettings.whatsapp || "6285151778865").replace(/\D/g, "");
+      cart = [];
+      updateCartUI();
+      toggleCart(false);
+      btn.disabled = false;
+      btn.textContent = "Beli & Kirim Pesanan Sekarang";
+
+      window.open(`https://wa.me/${targetWa}?text=${waText}`, "_blank");
+    };
+
+    window.openTrackModal = () => {
+      document.getElementById("trackModal").classList.remove("hidden");
+      document.getElementById("trackModal").classList.add("flex");
+    };
+    window.closeTrackModal = () => {
+      document.getElementById("trackModal").classList.add("hidden");
+      document.getElementById("trackModal").classList.remove("flex");
+    };
+
+    window.searchOrder = async () => {
+      const val = document.getElementById("trackInput").value.trim();
+      const box = document.getElementById("trackResultBox");
+      if (!val || !db) return;
+      box.innerHTML = `<p class="text-slate-400">Mencari pesanan...</p>`;
+      try {
+        const snap = await getDocs(collection(db, "orders"));
+        const results = snap.docs
+          .map(d => d.data())
+          .filter(o => (o.orderId || "").toLowerCase() === val.toLowerCase() || (o.buyerWhatsapp || "").includes(val));
+
+        if (results.length === 0) {
+          box.innerHTML = `<p class="text-rose-400 font-semibold">Pesanan tidak ditemukan.</p>`;
+          return;
+        }
+        box.innerHTML = results.map(o => `
+          <div class="p-2.5 rounded-xl border border-slate-800 bg-slate-900">
+            <div class="flex justify-between font-bold text-white">
+              <span>${o.orderId}</span>
+              <span class="text-indigo-400">${o.status}</span>
+            </div>
+            <p class="text-slate-400 mt-0.5">${o.buyerName} • ${formatRp(o.totalAmount)}</p>
+          </div>
+        `).join('');
+      } catch (e) {
+        box.innerHTML = `<p class="text-rose-400">Gagal memuat data.</p>`;
+      }
+    };
+
+    document.getElementById("searchInput").addEventListener("input", renderProducts);
+
+    applyStoreBranding();
+    renderProducts();
+    updateCartUI();
+  </script>
+</body>
+</html>
