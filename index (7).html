@@ -1,0 +1,267 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Pemberitahuan Migrasi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Konsep: satu kartu kaca cair melayang di atas aurora yang bergerak pelan. Hanya satu elemen memakai backdrop-filter, animasi hanya transform/opacity. */
+:root{
+  --bg1:#dfe9ff; --bg2:#f1e4ff;
+  --blob1:rgba(70,140,255,.75); --blob2:rgba(190,110,255,.65); --blob3:rgba(60,215,200,.6);
+  --fg:#0d1530; --fg-soft:#46517a;
+  --glass-a:rgba(255,255,255,.62); --glass-b:rgba(255,255,255,.28);
+  --edge:rgba(255,255,255,.9); --edge-low:rgba(120,140,200,.25);
+  --chip:rgba(255,255,255,.5); --shadow:rgba(40,60,130,.22);
+  --accent:#0a74ff; --accent2:#5b5cff; --accent-fg:#fff; --old:#7a85a8;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg1:#080b1f; --bg2:#150a2e;
+  --blob1:rgba(30,100,255,.7); --blob2:rgba(150,60,255,.6); --blob3:rgba(0,190,170,.45);
+  --fg:#f4f6ff; --fg-soft:#aab4dc;
+  --glass-a:rgba(255,255,255,.2); --glass-b:rgba(255,255,255,.06);
+  --edge:rgba(255,255,255,.5); --edge-low:rgba(255,255,255,.08);
+  --chip:rgba(255,255,255,.1); --shadow:rgba(0,0,0,.55);
+  --accent:#2f8bff; --accent2:#7a6bff; --old:#8590b8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg1:#080b1f; --bg2:#150a2e;
+  --blob1:rgba(30,100,255,.7); --blob2:rgba(150,60,255,.6); --blob3:rgba(0,190,170,.45);
+  --fg:#f4f6ff; --fg-soft:#aab4dc;
+  --glass-a:rgba(255,255,255,.2); --glass-b:rgba(255,255,255,.06);
+  --edge:rgba(255,255,255,.5); --edge-low:rgba(255,255,255,.08);
+  --chip:rgba(255,255,255,.1); --shadow:rgba(0,0,0,.55);
+  --accent:#2f8bff; --accent2:#7a6bff; --old:#8590b8; color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font-family:var(--font); color:var(--fg);
+  background:linear-gradient(160deg,var(--bg1),var(--bg2)) fixed var(--bg1);
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+
+/* Aurora: gradien radial biasa, tanpa filter blur, murah di GPU lemah */
+.aurora{position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0}
+.blob{position:absolute; width:90vmax; height:90vmax; border-radius:50%; will-change:transform; opacity:.9}
+.b1{left:-45vmax; top:-45vmax; background:radial-gradient(circle,var(--blob1) 0%,transparent 62%); animation:drift1 22s ease-in-out infinite alternate}
+.b2{right:-50vmax; top:5vh; background:radial-gradient(circle,var(--blob2) 0%,transparent 62%); animation:drift2 26s ease-in-out infinite alternate}
+.b3{left:-20vmax; bottom:-55vmax; background:radial-gradient(circle,var(--blob3) 0%,transparent 62%); animation:drift3 30s ease-in-out infinite alternate}
+@keyframes drift1{to{transform:translate3d(28vmax,18vmax,0) scale(1.08)}}
+@keyframes drift2{to{transform:translate3d(-30vmax,22vmax,0) scale(.92)}}
+@keyframes drift3{to{transform:translate3d(32vmax,-14vmax,0) scale(1.1)}}
+
+.page{
+  position:relative; z-index:1; min-height:100%;
+  display:flex; align-items:center; justify-content:center;
+  padding-block:28px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+
+/* Kartu kaca cair */
+.glass{
+  position:relative; width:100%; max-width:460px; min-width:0;
+  border-radius:38px; padding:26px 22px 22px; overflow:hidden; isolation:isolate;
+  background:linear-gradient(150deg,var(--glass-a),var(--glass-b));
+  -webkit-backdrop-filter:blur(14px) saturate(170%); backdrop-filter:blur(14px) saturate(170%);
+  box-shadow:
+    inset 0 1.5px 0 var(--edge),
+    inset 0 -1px 0 var(--edge-low),
+    inset 1px 0 0 var(--edge-low), inset -1px 0 0 var(--edge-low),
+    0 24px 60px -12px var(--shadow);
+  animation:cardIn .9s cubic-bezier(.2,.9,.25,1.05) both;
+}
+@keyframes cardIn{from{opacity:0; transform:translate3d(0,40px,0) scale(.94)}}
+/* kilau spekular yang menyapu kartu */
+.glass::before{
+  content:""; position:absolute; top:0; bottom:0; left:-60%; width:45%; z-index:-1;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);
+  transform:translate3d(0,0,0) skewX(-18deg); will-change:transform;
+  animation:sheen 7s ease-in-out 1.4s infinite;
+}
+@keyframes sheen{0%{transform:translate3d(0,0,0) skewX(-18deg)}35%,100%{transform:translate3d(520%,0,0) skewX(-18deg)}}
+
+/* Pil ala Dynamic Island */
+.island{
+  display:flex; align-items:center; gap:9px; width:max-content; max-width:100%;
+  margin:0 auto 22px; padding:8px 16px 8px 11px; border-radius:99px;
+  background:#05060d; color:#fff; font-size:13px; font-weight:600; letter-spacing:.01em;
+  box-shadow:0 8px 20px -6px rgba(0,0,0,.5);
+  animation:islandIn .8s cubic-bezier(.3,1.4,.4,1) .35s both;
+}
+@keyframes islandIn{from{opacity:0; transform:scale(.4)} 60%{opacity:1}}
+.dot{width:9px; height:9px; border-radius:50%; background:#30d158; position:relative; flex:none}
+.dot::after{content:""; position:absolute; inset:0; border-radius:50%; background:#30d158; animation:ping 2s ease-out infinite}
+@keyframes ping{from{transform:scale(1); opacity:.7}to{transform:scale(3); opacity:0}}
+
+.orb{
+  width:84px; height:84px; margin:0 auto 18px; border-radius:50%; display:grid; place-items:center;
+  background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.95),rgba(255,255,255,.15) 45%,transparent 70%),linear-gradient(145deg,var(--accent),var(--accent2));
+  box-shadow:inset 0 2px 3px rgba(255,255,255,.7),inset 0 -6px 14px rgba(20,20,120,.35),0 14px 28px -8px var(--accent);
+  animation:orbIn .9s cubic-bezier(.3,1.4,.4,1) .5s both, float 5s ease-in-out 1.5s infinite;
+}
+.orb svg{width:38px; height:38px; overflow:visible}
+.orb path{stroke:#fff; stroke-width:3.2; fill:none; stroke-linecap:round; stroke-linejoin:round}
+.orb .arr{animation:nudge 2.4s ease-in-out 1.6s infinite}
+@keyframes orbIn{from{opacity:0; transform:scale(.3) rotate(-30deg)}}
+@keyframes float{50%{transform:translate3d(0,-7px,0)}}
+@keyframes nudge{50%{transform:translate3d(5px,0,0)}}
+
+h1{margin:0 0 10px; text-align:center; font-size:clamp(28px,8.4vw,36px); line-height:1.1; letter-spacing:-.025em; font-weight:800; text-wrap:balance}
+.lead{margin:0 auto 22px; max-width:34ch; text-align:center; font-size:15.5px; line-height:1.55; color:var(--fg-soft); text-wrap:balance}
+
+.rise{animation:rise .7s cubic-bezier(.2,.9,.3,1) both; animation-delay:calc(.55s + var(--i,0) * .09s)}
+@keyframes rise{from{opacity:0; transform:translate3d(0,18px,0)}}
+
+/* Alamat lama -> baru */
+.route{display:flex; flex-direction:column; gap:8px; margin-bottom:18px}
+.addr{
+  display:flex; align-items:center; gap:10px; min-width:0;
+  padding:12px 14px; border-radius:18px; background:var(--chip);
+  box-shadow:inset 0 1px 0 var(--edge),inset 0 -1px 0 var(--edge-low);
+  font-size:14.5px; font-weight:600;
+}
+.addr small{flex:none; font-size:10.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--fg-soft); width:44px}
+.addr span.u{min-width:0; overflow-wrap:anywhere}
+.addr.old span.u{color:var(--old); text-decoration:line-through; text-decoration-thickness:2px; text-decoration-color:rgba(255,80,80,.65)}
+.addr.new{background:linear-gradient(135deg,rgba(47,139,255,.28),rgba(122,107,255,.24)); box-shadow:inset 0 1px 0 var(--edge),inset 0 0 0 1px rgba(47,139,255,.45)}
+.addr.new span.u{background:linear-gradient(90deg,var(--accent),var(--accent2)); -webkit-background-clip:text; background-clip:text; color:transparent; font-weight:800}
+
+.actions{display:grid; gap:10px; margin-bottom:18px}
+.btn{
+  appearance:none; border:0; cursor:pointer; font:inherit; font-weight:700; font-size:16px; text-decoration:none; text-align:center;
+  display:flex; align-items:center; justify-content:center; gap:8px; min-height:52px; padding:14px 18px; border-radius:99px;
+  transition:transform .18s cubic-bezier(.3,1.5,.5,1), filter .2s; -webkit-tap-highlight-color:transparent;
+}
+.btn:active{transform:scale(.95)}
+.btn:focus-visible{outline:3px solid var(--accent); outline-offset:3px}
+.btn.primary{color:var(--accent-fg); background:linear-gradient(180deg,rgba(255,255,255,.35),transparent 55%),linear-gradient(135deg,var(--accent),var(--accent2));
+  box-shadow:inset 0 1.5px 0 rgba(255,255,255,.6),inset 0 -2px 6px rgba(10,10,100,.3),0 12px 24px -8px var(--accent)}
+.btn.ghost{color:var(--fg); background:var(--chip); box-shadow:inset 0 1px 0 var(--edge),inset 0 -1px 0 var(--edge-low)}
+@media (hover:hover){.btn:hover{filter:brightness(1.08)}}
+
+.facts{display:grid; gap:8px; margin:0 0 4px; padding:0; list-style:none}
+.facts li{display:flex; gap:12px; align-items:center; padding:11px 14px; border-radius:16px; background:var(--chip); font-size:14px; line-height:1.4; color:var(--fg-soft); min-width:0}
+.facts b{display:block; color:var(--fg); font-weight:700; font-size:14.5px}
+.facts i{flex:none; width:34px; height:34px; border-radius:11px; display:grid; place-items:center; font-style:normal; font-size:16px; color:#fff; background:linear-gradient(145deg,var(--accent),var(--accent2))}
+.facts i svg{width:18px; height:18px; fill:none; stroke:#fff; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round}
+
+.redir{margin-top:16px; text-align:center; font-size:13px; color:var(--fg-soft)}
+.redir[hidden]{display:none}
+.bar{height:5px; border-radius:9px; background:var(--chip); overflow:hidden; margin:8px 0 6px}
+.bar>i{display:block; height:100%; width:100%; border-radius:9px; background:linear-gradient(90deg,var(--accent),var(--accent2)); transform-origin:left; transform:scaleX(0)}
+.bar.run>i{animation:fill var(--secs,10s) linear forwards}
+@keyframes fill{to{transform:scaleX(1)}}
+.link{background:none; border:0; padding:6px; font:inherit; font-weight:700; color:var(--accent); cursor:pointer}
+.toast{position:fixed; left:50%; bottom:calc(24px + env(safe-area-inset-bottom,0px)); z-index:5; transform:translate3d(-50%,30px,0); opacity:0; pointer-events:none;
+  padding:11px 20px; border-radius:99px; background:#05060d; color:#fff; font-size:14px; font-weight:600; transition:transform .35s cubic-bezier(.3,1.4,.4,1),opacity .25s}
+.toast.show{transform:translate3d(-50%,0,0); opacity:1}
+.foot{margin:16px 0 0; text-align:center; font-size:12px; color:var(--fg-soft); opacity:.85}
+
+/* Mode ringan: otomatis di HP spek rendah / hemat data / tanpa dukungan backdrop-filter */
+.lite .glass{-webkit-backdrop-filter:none; backdrop-filter:none; background:linear-gradient(150deg,var(--glass-a),var(--glass-b)),var(--bg1)}
+.lite .glass::before{display:none}
+.lite .blob{animation-duration:60s; width:70vmax; height:70vmax}
+.lite .b3{display:none}
+.lite .dot::after,.lite .orb{animation-iteration-count:1}
+.paused *,.paused *::before,.paused *::after{animation-play-state:paused!important}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important; animation-iteration-count:1!important; animation-delay:0s!important}
+}
+</style>
+
+<div class="aurora" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<main class="page">
+  <section class="glass" aria-labelledby="judul">
+    <div class="island"><span class="dot"></span><span id="statusText">Migrasi selesai</span></div>
+
+    <div class="orb" aria-hidden="true">
+      <svg viewBox="0 0 40 40"><path d="M8 20h22"/><path class="arr" d="M21 10l10 10-10 10"/></svg>
+    </div>
+
+    <h1 id="judul" class="rise" style="--i:0">Kami sudah pindah rumah</h1>
+    <p class="lead rise" style="--i:1" id="lead">Website lama sudah tidak aktif. Silakan kunjungi alamat baru kami di bawah ini.</p>
+
+    <div class="route rise" style="--i:2">
+      <div class="addr old"><small>Lama</small><span class="u" id="oldUrl">https://morezzmarket.twins.web.id</span></div>
+      <div class="addr new"><small>Baru</small><span class="u" id="newUrl">https://market.morez.my.id</span></div>
+    </div>
+
+    <div class="actions rise" style="--i:3">
+      <a class="btn primary" id="goBtn" href="#">Buka situs baru
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+      <button class="btn ghost" id="copyBtn" type="button">Salin alamat baru</button>
+    </div>
+
+    <div class="redir rise" style="--i:7" id="redir" hidden>
+      Anda akan dialihkan otomatis dalam <b id="count">10</b> detik
+      <div class="bar" id="bar"><i></i></div>
+      <button class="link" id="cancelBtn" type="button">Batalkan pengalihan</button>
+    </div>
+
+    <p class="foot rise" style="--i:8">Terima kasih sudah setia bersama kami. Simpan alamat baru di kepala Anda.</p>
+  </section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ====== PENGATURAN: ubah bagian ini saja ====== */
+var CONFIG = {
+  oldDomain: "https://morezzmarket.twins.web.id",
+  newUrl: "https://market.morez.my.id",
+  autoRedirectSeconds: 15   // 0 = mati. Isi 10 untuk alihkan otomatis setelah 10 detik di situs asli Anda.
+};
+/* ============================================== */
+(function(){
+  var d = document, root = d.documentElement;
+  function $(id){ return d.getElementById(id); }
+
+  // Mode ringan untuk HP spek rendah
+  var cores = navigator.hardwareConcurrency || 8, mem = navigator.deviceMemory || 8;
+  var saveData = navigator.connection && navigator.connection.saveData;
+  var noBlur = !(window.CSS && (CSS.supports("backdrop-filter","blur(1px)") || CSS.supports("-webkit-backdrop-filter","blur(1px)")));
+  if (cores <= 4 || mem <= 3 || saveData || noBlur) root.classList.add("lite");
+
+  // Hemat baterai: jeda animasi saat tab tidak terlihat
+  d.addEventListener("visibilitychange", function(){ root.classList.toggle("paused", d.hidden); });
+
+  var host = CONFIG.newUrl.replace(/^https?:\/\//,"").replace(/\/$/,"");
+  $("oldUrl").textContent = CONFIG.oldDomain;
+  $("newUrl").textContent = host;
+  $("goBtn").href = CONFIG.newUrl;
+  d.title = "Kami pindah ke " + host;
+
+  var toast = $("toast"), tt;
+  function say(msg){ toast.textContent = msg; toast.classList.add("show"); clearTimeout(tt); tt = setTimeout(function(){ toast.classList.remove("show"); }, 1800); }
+
+  $("copyBtn").addEventListener("click", function(){
+    function fallback(){
+      var r = d.createRange(); r.selectNodeContents($("newUrl"));
+      var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      say("Alamat dipilih, tekan Salin");
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(CONFIG.newUrl).then(function(){ say("Alamat tersalin"); }, fallback);
+    } else fallback();
+  });
+
+  // Pengalihan otomatis (opsional)
+  var secs = CONFIG.autoRedirectSeconds, timer;
+  if (secs > 0){
+    var box = $("redir"), left = secs, bar = $("bar");
+    box.hidden = false;
+    bar.style.setProperty("--secs", secs + "s");
+    bar.classList.add("run");
+    $("count").textContent = left;
+    timer = setInterval(function(){
+      left--; $("count").textContent = Math.max(left,0);
+      if (left <= 0){ clearInterval(timer); location.href = CONFIG.newUrl; }
+    }, 1000);
+    $("cancelBtn").addEventListener("click", function(){
+      clearInterval(timer); box.hidden = true; say("Pengalihan dibatalkan");
+    });
+  }
+})();
+</script>
+
+</body></html>
